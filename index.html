@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    
+    <style>
+        .top, .bottom, .overflow{
+            background-color: #fff;
+            padding: 15px;
+            width: 220px;
+            text-align: center;
+        }
+
+        *{
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            line-height: 40px;
+        }
+
+        .top{
+            height: 20px;
+        }
+
+        .top div{
+            color: grey;
+        }
+        
+        .bottom, #options-container{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .overflow{
+            max-height: 150px;
+            overflow-y: scroll;
+            position: relative;
+        }
+        .overflow::-webkit-scrollbar{
+            display: none;
+        }
+
+        #selector{
+            border-top: 1px solid grey;
+            border-bottom: 1px solid grey;
+            width: 100%;
+            height: 40px;
+            position: sticky;
+            top: calc(50% - 10px);
+        }
+
+        #options-container{
+            margin-top: 25px;
+            margin-bottom: 65px;
+            text-align: center;
+            width: 100%;
+        }
+
+        #options-container > div{
+            color: black;
+        }
+
+        html{
+            display: flex;
+            justify-content: center;
+        }
+        body{
+            background-color: grey;
+        }
+        .bottom > button{
+            width: 100%;
+            height: 30px;
+            border-radius: 15px;
+            border: none;
+            font-size: 12px;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+        }
+        #aceptar{
+            margin-bottom: 10px;
+            background-color: #fff573;
+        }
+        #cancelar{
+            background-color: #f3f3f3;
+        }
+    </style>
+
+</head>
+<body onclick="scroll();">
+    <div class="top"><div>Elige los meses</div></div>
+    <div class="overflow">
+        <div id="selector"></div>
+        <div id="options-container">
+            <div class="option">12</div>
+            <div class="option">13</div>
+            <div class="option">14</div>
+            <div class="option">15</div>
+            <div class="option">16</div>
+            <div class="option">17</div>
+            <div class="option">18</div>
+            <div class="option">19</div>
+            <div class="option">20</div>
+            <div class="option">21</div>
+            <div class="option">22</div>
+            <div class="option">23</div>
+            <div class="option">24</div>
+            <div class="option">25</div>
+            <div class="option">26</div>
+            <div class="option">27</div>
+            <div class="option">28</div>
+            <div class="option">29</div>
+            <div class="option">30</div>
+            <div class="option">31</div>
+            <div class="option">32</div>
+            <div class="option">33</div>
+            <div class="option">34</div>
+            <div class="option">35</div>
+            <div class="option">36</div>
+        </div>
+    </div>
+    <div class="bottom"><button id="aceptar">Aceptar</button><button id="cacelar">Cancelar</button></div>
+    <div id="selected"></div>
+    <script>
+        // Elemento al que se le aplica el scroll
+        var container = document.getElementsByClassName("overflow")[0];
+        // posicion del elemento al que se le aplica el scroll
+        var containerPos = container.getBoundingClientRect();
+        // opciones
+        var options = document.getElementsByClassName("option");
+        // altura de cada una de las opciones
+        var optionHeight = options[0].clientHeight;
+        // cantidad de opciones
+        const COUNT = options.length;
+        // posicion inicial
+        const TOP_POSITION = 67;
+
+        // posiciones posibles
+        var positions = [];
+        for (let i = 0; i < COUNT; i++){
+            positions.push(i * optionHeight );
+        }
+        console.log(positions);
+
+        var stopTimeout = null;
+        container.addEventListener('scroll', function(){
+            var result = document.getElementById("selected");
+            var optionscontainer = document.getElementById("options-container");
+            for (let op of options) {
+                var elemRect = op.getBoundingClientRect(),
+                offset   = elemRect.top - containerPos.top;
+                // coordenadas de encuentro en el centro. Influye el padding (+15px) pero no margin
+                if (offset >= 71 && offset <= 91){
+                    result.innerHTML = "Selected item: " + op.innerHTML;
+                }
+            }
+            // var currentPosition = optionscontainer.getBoundingClientRect().top - containerPos.top;
+            // console.log(container.scrollTop);
+
+            // Eventos despues de que el usuario deje de hacer scroll
+            if (stopTimeout !== null) {
+                clearTimeout(stopTimeout);        
+            }
+            stopTimeout = setTimeout(function(){
+                var counts = positions;
+
+                // devuelve la opción mas cercana 
+                var closest = counts.reduce(function(prev, curr) {
+                    return (Math.abs(curr - container.scrollTop) < Math.abs(prev - container.scrollTop) ? curr : prev);
+                });
+                
+                // Funcion de movimiento
+                Math.easeInOutQuad = function (t, b, c, d) {
+                t /= d/2;
+                    if (t < 1) return c/2*t*t + b;
+                    t--;
+                    return -c/2 * (t*(t-2) - 1) + b;
+                };
+
+                var timer;
+                if (timer !== null){
+                    clearTimeout(timer);
+                }
+                // Hace scroll hasta la posicion mas cercana
+                scrollTo(container, closest, 150);
+                function scrollTo(element, to, duration) {
+                    var start = element.scrollTop,
+                        change = to - start,
+                        currentTime = 0,
+                        increment = 20;
+
+                    var animateScroll = function(){        
+                        currentTime += increment;
+                        var val = Math.easeInOutQuad(currentTime, start, change, duration);
+                        element.scrollTop = val;
+                        if(currentTime < duration) {
+                            timer = setTimeout(animateScroll, increment);
+                        }
+                    };
+                    animateScroll();
+                }
+
+            }, 100);
+        }, false);
+
+        // document.onclick = scroll;
+        // function scroll(){
+        //     container.scrollTop += 20;
+        // }
+    </script>
+</body>
+</html>
